@@ -123,7 +123,7 @@ class TabuSearch:
                 if all([x in self.tabu_list for x in neighborhood]):
                     print("TERMINATING - NO SUITABLE NEIGHBORS")
                     return self.best, self._score(self.best)
-                if neighborhood_best in self.tabu_list: #Instead of If State is Tabu, should be If Swap is Tabu
+                if neighborhood_best in self.tabu_list: #Instead of If State is Tabu, should be If Swap is Tabu, if Move is in Tabu List rather than if Solution in Tabu List
                     if self._score(neighborhood_best) > self._score(self.best):
                         self.tabu_list.append(neighborhood_best)
                         self.best = deepcopy(neighborhood_best)

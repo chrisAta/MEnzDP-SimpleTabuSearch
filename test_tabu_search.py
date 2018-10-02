@@ -1,6 +1,6 @@
 from random import choice, randint, random
 from string import ascii_lowercase
-from Solid.TabuSearch import TabuSearch
+from TabuSearchGuide import TabuSearch
 from copy import deepcopy
 
 
@@ -10,9 +10,8 @@ class Algorithm(TabuSearch):
     """
     def _neighborhood(self):
         member = list(self.current)
-        print self.best
         neighborhood = []
-        for _ in range(10):
+        for _ in range(50):
             neighbor = deepcopy(member)
             neighbor[randint(0, 4)] = choice(ascii_lowercase)
             # print choice(ascii_lowercase)
@@ -24,10 +23,16 @@ class Algorithm(TabuSearch):
 
         return float(sum(state[i] == "clout"[i] for i in range(5)))
 
+
+
+
+
 def test_algorithm():
     print 'HI'
-    algorithm = Algorithm('abcde', 50, 5, max_score=None)
+    algorithm = Algorithm('abcde', 50, 500, max_score=5)
     (member, score) = algorithm.run()
 
     print member + ' - ' + str(score)
+
+
 test_algorithm()
