@@ -1,0 +1,3 @@
+[submodule "maxminDiversitySet"]
+	path = maxminDiversitySet
+	url = git@github.com:chrisAta/maxminDiversitySet.git
