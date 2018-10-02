@@ -1,3 +1,6 @@
 [submodule "maxminDiversitySet"]
 	path = maxminDiversitySet
 	url = git@github.com:chrisAta/maxminDiversitySet.git
+[submodule "tabstuSearch"]
+	path = tabstuSearch
+	url = git@github.com:chrisAta/tabstuSearch.git
