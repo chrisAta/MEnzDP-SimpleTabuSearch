@@ -1,6 +1,5 @@
 # MEnzDP-SimpleTabuSearch
 Maximum Enzyme Diversity Problem (MEnzDP) - Simple Tabu Search Implementation
 
-This uses the TabuSearch class from the Python library [Solid](https://github.com/100/Solid/blob/master/Solid/TabuSearch.py) 
+This uses the simple and abstract TabuSearch class in https://github.com/chrisAta/tabstuSearch 
 
-`pip install solidpy`
