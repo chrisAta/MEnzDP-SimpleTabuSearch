@@ -74,7 +74,7 @@ def sep_indices(val):
 if __name__ == "__main__":
 
     ssn_set, val = max_min_diversity.compute_diverse_set('./temp_ssn_identities.npy',
-                                            './temp_ssn_headings.json', 50)
+                                            './temp_ssn_headings.json', 40)
 
     print(ssn_set)
     ini_sol = Solution(val)
@@ -82,9 +82,9 @@ if __name__ == "__main__":
     head = initialise_headings('./temp_ssn_headings.json')
     mat = initialise_matrix('./temp_ssn_identities.npy')
 
-    # ini_sol = Solution(random_solution(241, 50))
+    # ini_sol = Solution(random_solution(241, 40))
     print(ini_sol.val)
-    test = MEnzDPTabuSearch(ini_sol, 7, 'double', 20, 1000, max_wait=100, opt_tuple=(mat, []))
+    test = MEnzDPTabuSearch(ini_sol, 40, 'double', 10, 1000, opt_tuple=(mat, []))
 
     print('BEST SCOREEEEEE')
     print(test._score(ini_sol))
