@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 from tabstuSearch.TabuSearch import TabuSearch as TabuSearch
 from tabstuSearch.Solution import Solution as Solution
 from tabstuSearch.Path import Path as Path
@@ -76,29 +76,42 @@ if __name__ == "__main__":
     ssn_set, val = max_min_diversity.compute_diverse_set('./temp_ssn_identities.npy',
                                             './temp_ssn_headings.json', 50)
 
-    print ssn_set
+    print(ssn_set)
     ini_sol = Solution(val)
 
     head = initialise_headings('./temp_ssn_headings.json')
     mat = initialise_matrix('./temp_ssn_identities.npy')
 
     # ini_sol = Solution(random_solution(241, 50))
-    print ini_sol.val
-    test = MEnzDPTabuSearch(ini_sol, 7, 'double', 20, 1000, opt_tuple=(mat, []))
+    print(ini_sol.val)
+    test = MEnzDPTabuSearch(ini_sol, 7, 'double', 20, 1000, max_wait=100, opt_tuple=(mat, []))
 
-    print 'BEST SCOREEEEEE'
-    print test._score(ini_sol)
+    print('BEST SCOREEEEEE')
+    print(test._score(ini_sol))
 
     best, score = test.run()
 
-    print best.val
+    print(best.val)
 
     for i in range(0, len(best.val)):
         if best.val[i] == '1':
-            print head[i]
+            print(head[i])
 
-    print score
+    print(score)
 
-    print ssn
+
+    set = []
+
+    for i in range(0, len(best.val)):
+        if best.val[i] == 1:
+            set += [i]
 
     set = sorted([head[x] for x in set])
+
+    print("\nMDP SET:")
+    for name in ssn_set:
+        print(name + ', ', end='')
+
+    print("\n\nTABUSEARCH SET:")
+    for name in set:
+        print(name + ', ', end='')
