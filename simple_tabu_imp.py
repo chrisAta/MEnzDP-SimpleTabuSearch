@@ -54,12 +54,59 @@ class MEnzDPTabuSearch(TabuSearch):
             else:
                 non_indices_nontabu += [i]
 
-        cls_num = 2
+        cls_num = 7
 
+        s_cls = []
         s_cls_tabu = []
         s_cls_nontabu = []
+        n_cls = []
         n_cls_tabu = []
         n_cls_nontabu = []
+
+        temp_vals = []
+        temp_indices = []
+
+        for i in set_indices:
+            temp_vals += [delta[i]]
+            temp_indices += [i]
+
+        s_cls = sorted(range(len(temp_vals)), key=lambda i: temp_vals[i])[-cls_num:]
+        s_cls = [temp_indices[x] for x in s_cls]
+
+        temp_vals = []
+        temp_indices = []
+
+        for i in non_indices:
+            temp_vals += [delta[i]]
+            temp_indices += [i]
+
+        n_cls = sorted(range(len(temp_vals)), key=lambda i: temp_vals[i])[-cls_num:]
+        n_cls = [temp_indices[x] for x in n_cls]
+
+        alpha = []
+
+        for i in s_cls:
+            for j in n_cls:
+                alpha += [([i, j], delta[i] + delta[j] - (1 - mat[i, j]))]
+
+        temp_val = -500
+        temp_choice = 0
+
+        for i in alpha:
+            if i[1] > temp_val:
+                temp_val = i[1]
+                temp_choice = i
+
+        # print(s_cls, n_cls)
+        # neighbour = deepcopy(curr_sol)
+        #
+        # neighbour.val[temp_choice[0][0]] = 0
+        # neighbour.val[temp_choice[0][1]] = 1
+        # neighbour.fitness = self._score(neighbour)
+        # path = Path('single_swap', [temp_choice[0][0], temp_choice[0][1]])
+        # move = Move(curr_sol, neighbour, path)
+        #
+        # neighbourhood.append(move)
 
         temp_vals = []
         temp_indices = []
@@ -115,6 +162,8 @@ class MEnzDPTabuSearch(TabuSearch):
                 if i[1] > temp_val:
                     temp_choice = i
 
+            # print(temp_choice[1])
+
             neighbour = deepcopy(curr_sol)
             neighbour.val[temp_choice[0][0]] = 0
             neighbour.val[temp_choice[0][1]] = 1
@@ -135,7 +184,10 @@ class MEnzDPTabuSearch(TabuSearch):
 
         for i in alpha:
             if i[1] > temp_val:
+                temp_val = i[1]
                 temp_choice = i
+
+        # print(temp_choice[1])
 
         neighbour = deepcopy(curr_sol)
 
@@ -147,6 +199,7 @@ class MEnzDPTabuSearch(TabuSearch):
 
         neighbourhood.append(move)
 
+        # print(neighbourhood[0].path.change)
         return neighbourhood
 
 
@@ -261,11 +314,11 @@ def sep_indices(val):
 if __name__ == "__main__":
 
     print("Running Greedy Max-Min Diversity Solver")
-    ssn_set, val = max_min_diversity.compute_diverse_set('./temp_ssn_identities.npy',
-                                            './temp_ssn_headings.json', 50)
+    ssn_set, val = max_min_diversity.compute_diverse_set('./bact_p450_identities.npy',
+                                            './bact_p450_headings.json', 200)
 
-    head = initialise_headings('./temp_ssn_headings.json')
-    mat = initialise_matrix('./temp_ssn_identities.npy')
+    head = initialise_headings('./bact_p450_headings.json')
+    mat = initialise_matrix('./bact_p450_identities.npy')
 
     ini_sol = Solution(val)
 
@@ -273,8 +326,8 @@ if __name__ == "__main__":
     print("Initialising Delta")
     delta = initialise_delta(mat, ini_sol)
 
-    print(ini_sol.val)
-    test = MEnzDPTabuSearch(ini_sol, 7, 'double', 20, 1000, opt_tuple=[mat, delta])
+    # print(ini_sol.val)
+    test = MEnzDPTabuSearch(ini_sol, 11400, 'double', 25, 1000, opt_tuple=[mat, delta])
 
     print('BEST SCOREEEEEE')
     print(test._score(ini_sol))
