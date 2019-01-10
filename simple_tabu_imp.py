@@ -7,8 +7,9 @@ from data_prep import initialise_headings, initialise_matrix
 from maxminDiversitySet import max_min_diversity
 
 from copy import deepcopy
-from random import choice
+from random import choice, sample
 import numpy as np
+import networkx as nx
 
 
 class MEnzDPTabuSearch(TabuSearch):
@@ -315,7 +316,7 @@ def sep_indices(val):
 
 def post_processing(sol, head, mat):
 
-    threshold = 0.8
+    threshold = 0.5
 
     index_set = set()
     index_list = []
@@ -326,43 +327,99 @@ def post_processing(sol, head, mat):
     start_indices = list(above_thr[0])
     end_indices = list(above_thr[1])
 
-
+    G = nx.Graph()
 
     for i in range(0, len(start_indices)):
+
         if start_indices[i] in included_indices and end_indices[i] in included_indices:
+
             if str(start_indices[i]) + '-' + str(end_indices[i]) not in index_list \
                     and str(end_indices[i])  + '-' + str(start_indices[i]) not in index_list:
+
                         index_list += [str(start_indices[i]) + '-' + str(end_indices[i])]
                         index_set.add(start_indices[i])
                         index_set.add(end_indices[i])
 
+                        G.add_edge(start_indices[i], end_indices[i])
+
     start_indices = [int(x.split('-')[0]) for x in index_list]
     end_indices = [int(x.split('-')[1]) for x in index_list]
 
-    print(start_indices)
-    print(end_indices)
 
+    cliques = list(nx.find_cliques(G))
 
-    for i in range(0, len(start_indices)):
-        
+    del_indices = []
 
-    print(index_set)
+    for clique in cliques:
+
+        count = 0
+
+        while count != len(clique) and len(clique) != 0:
+
+            kept = clique.pop(clique.index(choice(clique)))
+            count += 1
+
+            if kept not in del_indices and kept in index_set:
+
+                index_set.remove(kept)
+                del_indices += clique
+                break
+
+    mat = np.delete(mat, list(index_set), 0)
+    mat = np.delete(mat, list(index_set), 1)
+
+    # head = list(np.delete(np.array(head), list(index_set)))
+    [head.pop(x) for x in list(index_set)]
+
+    new_head = {}
+
+    head_count = 0
+
+    for key in sorted(head.keys()):
+        new_head[head_count] = head[key]
+        head_count += 1
+
+    zero_indices = list(np.where(np.array(sol.val) == 0)[0])
+    # swap_indices = [choice(range(0, len(zero_indices))) for x in index_set]
+    swap_indices = sample(range(0, len(zero_indices)), len(index_set))
+    #
+    # while len(swap_indices) != len(index_set):
+    #
+    #     swap = choice(range(0, len(zero_indices)))
+    #
+    #     if swap not in swap_indices:
+    #         swap_indices += swap
+
+    print(zero_indices)
+    for i in swap_indices:
+
+        sol.val[zero_indices[i]] = 1
+
+    sol.val = list(np.delete(np.array(sol.val), list(index_set)))
+
+    return sol, new_head, mat
 
 if __name__ == "__main__":
 
-    # print("Running Greedy Max-Min Diversity Solver")
+    print("Running Greedy Max-Min Diversity Solver")
     # ssn_set, val = max_min_diversity.compute_diverse_set('./bact_p450_identities.npy',
     #                                         './bact_p450_headings.json', 500)
 
-    # ssn_set, val = max_min_diversity.compute_diverse_set('./trans1074_identities.npy',
-    #                                         './trans1074_headings.json', 100)
+    ssn_set, val = max_min_diversity.compute_diverse_set('./trans1074_identities.npy',
+                                            './trans1074_headings.json', 100)
 
 
     # head = initialise_headings('./bact_p450_headings.json')
     # mat = initialise_matrix('./bact_p450_identities.npy')
-
     head = initialise_headings('./trans1074_headings.json')
     mat = initialise_matrix('./trans1074_identities.npy')
+
+
+    print("\nMDP SET:")
+    for name in ssn_set:
+        print(name + ', ', end='')
+    print(ssn_set)
+
 
     # ini_sol = Solution(val)
 
@@ -375,7 +432,9 @@ if __name__ == "__main__":
     # print(ini_sol.val)
     # test = MEnzDPTabuSearch(ini_sol, 11457, 'double', 100, 1000, max_wait=70, opt_tuple=[mat, delta])
 
-    test = MEnzDPTabuSearch(ini_sol, 1074, 'double', 10, 10, max_wait=70, opt_tuple=[mat, delta])
+    results_list = []
+    score_list = []
+    test = MEnzDPTabuSearch(ini_sol, 1074, 'double', 10, 1000, max_wait=70, opt_tuple=[mat, delta])
 
 
     print('BEST SCOREEEEEE')
@@ -383,7 +442,7 @@ if __name__ == "__main__":
 
     best, score = test.run()
 
-    print(best.val)
+    score_list += [test._score(best)]
 
     for i in range(0, len(best.val)):
         if best.val[i] == '1':
@@ -391,24 +450,42 @@ if __name__ == "__main__":
 
     print(score)
 
-
-    picked_set = []
+    initial_picked_set = []
 
     for i in range(0, len(best.val)):
         if best.val[i] == 1:
-            picked_set += [i]
+            initial_picked_set += [i]
 
-    picked_set = sorted([head[x] for x in picked_set])
+    initial_picked_set = sorted([head[x] for x in initial_picked_set])
+    results_list += [initial_picked_set]
 
-    # print("\nMDP SET:")
-    # for name in ssn_set:
-    #     print(name + ', ', end='')
-    # print(ssn_set)
 
-    print("\n\nTABUSEARCH SET:")
-    for name in picked_set:
-        print(name + ', ', end='')
-
-    print(picked_set)
-
-    post_processing(best, head, mat)
+    # extra_iterations = 5
+    #
+    # new_head = head
+    #
+    # for i in range(0, extra_iterations):
+    #
+    #     best, new_head, mat = post_processing(best, new_head, mat)
+    #     delta = initialise_delta(mat, best)
+    #     new_run = MEnzDPTabuSearch(best, 1074, 'double', 10, 1000, max_wait=70, opt_tuple=[mat, delta])
+    #     best, score = new_run.run()
+    #     new_best_score = new_run._score(best)
+    #     new_picked_set = []
+    #
+    #     for i in range(0, len(best.val)):
+    #         if best.val[i] == 1:
+    #             new_picked_set += [i]
+    #
+    #     new_picked_set = sorted([new_head[x] for x in new_picked_set])
+    #     score_list += [new_best_score]
+    #     results_list += [new_picked_set]
+    #
+    # print("SCORES:")
+    # print(score_list)
+    #
+    # for i in range(0, len(results_list)):
+    #
+    #     print("ITERATION " + str(i) + ' RESULTS')
+    #
+    #     print(results_list[i])
