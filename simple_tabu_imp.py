@@ -98,15 +98,15 @@ class MEnzDPTabuSearch(TabuSearch):
                 temp_choice = i
 
         # print(s_cls, n_cls)
-        # neighbour = deepcopy(curr_sol)
-        #
-        # neighbour.val[temp_choice[0][0]] = 0
-        # neighbour.val[temp_choice[0][1]] = 1
-        # neighbour.fitness = self._score(neighbour)
-        # path = Path('single_swap', [temp_choice[0][0], temp_choice[0][1]])
-        # move = Move(curr_sol, neighbour, path)
-        #
-        # neighbourhood.append(move)
+        neighbour = deepcopy(curr_sol)
+
+        neighbour.val[temp_choice[0][0]] = 0
+        neighbour.val[temp_choice[0][1]] = 1
+        neighbour.fitness = self._score(neighbour)
+        path = Path('single_swap', [temp_choice[0][0], temp_choice[0][1]])
+        move = Move(curr_sol, neighbour, path)
+
+        neighbourhood.append(move)
 
         temp_vals = []
         temp_indices = []
@@ -200,6 +200,8 @@ class MEnzDPTabuSearch(TabuSearch):
         neighbourhood.append(move)
 
         # print(neighbourhood[0].path.change)
+        for i in neighbourhood:
+            print(i)
         return neighbourhood
 
 
@@ -311,23 +313,70 @@ def sep_indices(val):
     return (set_indices, non_indices)
 
 
+def post_processing(sol, head, mat):
+
+    threshold = 0.8
+
+    index_set = set()
+    index_list = []
+
+    included_indices = list(np.where(np.array(sol.val) == 1)[0])
+
+    above_thr = np.where(mat >= threshold)
+    start_indices = list(above_thr[0])
+    end_indices = list(above_thr[1])
+
+
+
+    for i in range(0, len(start_indices)):
+        if start_indices[i] in included_indices and end_indices[i] in included_indices:
+            if str(start_indices[i]) + '-' + str(end_indices[i]) not in index_list \
+                    and str(end_indices[i])  + '-' + str(start_indices[i]) not in index_list:
+                        index_list += [str(start_indices[i]) + '-' + str(end_indices[i])]
+                        index_set.add(start_indices[i])
+                        index_set.add(end_indices[i])
+
+    start_indices = [int(x.split('-')[0]) for x in index_list]
+    end_indices = [int(x.split('-')[1]) for x in index_list]
+
+    print(start_indices)
+    print(end_indices)
+
+
+    for i in range(0, len(start_indices)):
+        
+
+	    print(index_set)
+
 if __name__ == "__main__":
 
-    print("Running Greedy Max-Min Diversity Solver")
-    ssn_set, val = max_min_diversity.compute_diverse_set('./bact_p450_identities.npy',
-                                            './bact_p450_headings.json', 200)
+    # print("Running Greedy Max-Min Diversity Solver")
+    # ssn_set, val = max_min_diversity.compute_diverse_set('./bact_p450_identities.npy',
+    #                                         './bact_p450_headings.json', 500)
 
-    head = initialise_headings('./bact_p450_headings.json')
-    mat = initialise_matrix('./bact_p450_identities.npy')
+    # ssn_set, val = max_min_diversity.compute_diverse_set('./trans1074_identities.npy',
+    #                                         './trans1074_headings.json', 100)
 
-    ini_sol = Solution(val)
 
-    # ini_sol = Solution(random_solution(241, 50))
+    # head = initialise_headings('./bact_p450_headings.json')
+    # mat = initialise_matrix('./bact_p450_identities.npy')
+
+    head = initialise_headings('./temp_ssn_headings.json')
+    mat = initialise_matrix('./temp_ssn_identities.npy')
+
+    # ini_sol = Solution(val)
+
+    ini_sol = Solution(random_solution(241, 24))
+    # ini_sol = Solution(random_solution(11457, 500))
+
     print("Initialising Delta")
     delta = initialise_delta(mat, ini_sol)
 
     # print(ini_sol.val)
-    test = MEnzDPTabuSearch(ini_sol, 11400, 'double', 25, 1000, opt_tuple=[mat, delta])
+    # test = MEnzDPTabuSearch(ini_sol, 11457, 'double', 100, 1000, max_wait=70, opt_tuple=[mat, delta])
+
+    test = MEnzDPTabuSearch(ini_sol, 241, 'double', 10, 10000, max_wait=5000, opt_tuple=[mat, delta])
+
 
     print('BEST SCOREEEEEE')
     print(test._score(ini_sol))
@@ -343,18 +392,23 @@ if __name__ == "__main__":
     print(score)
 
 
-    set = []
+    picked_set = []
 
     for i in range(0, len(best.val)):
         if best.val[i] == 1:
-            set += [i]
+            picked_set += [i]
 
-    set = sorted([head[x] for x in set])
+    picked_set = sorted([head[x] for x in picked_set])
 
-    print("\nMDP SET:")
-    for name in ssn_set:
-        print(name + ', ', end='')
+    # print("\nMDP SET:")
+    # for name in ssn_set:
+    #     print(name + ', ', end='')
+    # print(ssn_set)
 
     print("\n\nTABUSEARCH SET:")
-    for name in set:
+    for name in picked_set:
         print(name + ', ', end='')
+
+    print(picked_set)
+
+    post_processing(best, head, mat)
