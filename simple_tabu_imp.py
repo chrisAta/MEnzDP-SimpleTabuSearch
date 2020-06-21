@@ -11,7 +11,6 @@ from random import choice, sample
 import numpy as np
 import networkx as nx
 
-
 class MEnzDPTabuSearch(TabuSearch):
 
     def _score(self, sol):
@@ -201,8 +200,7 @@ class MEnzDPTabuSearch(TabuSearch):
         neighbourhood.append(move)
 
         # print(neighbourhood[0].path.change)
-        for i in neighbourhood:
-            print(i)
+
         return neighbourhood
 
 
@@ -315,6 +313,7 @@ def sep_indices(val):
 
 
 def post_processing(sol, head, mat):
+<<<<<<< HEAD
 
     threshold = 0.5
 
@@ -436,12 +435,109 @@ if __name__ == "__main__":
     score_list = []
     test = MEnzDPTabuSearch(ini_sol, 1074, 'double', 10, 1000, max_wait=70, opt_tuple=[mat, delta])
 
+=======
 
-    print('BEST SCOREEEEEE')
-    print(test._score(ini_sol))
+    threshold = 0.4
+
+    index_set = set()
+    index_list = []
+
+    included_indices = list(np.where(np.array(sol.val) == 1)[0])
+
+    above_thr = np.where(mat >= threshold)
+    start_indices = list(above_thr[0])
+    end_indices = list(above_thr[1])
+
+    G = nx.Graph()
+>>>>>>> 19a2946b65aa6e23f8ecd6c2b30c66eb5dbb9cad
+
+    for i in range(0, len(start_indices)):
+
+        if start_indices[i] in included_indices and end_indices[i] in included_indices:
+
+<<<<<<< HEAD
+=======
+            if str(start_indices[i]) + '-' + str(end_indices[i]) not in index_list \
+                    and str(end_indices[i])  + '-' + str(start_indices[i]) not in index_list:
+
+                        index_list += [str(start_indices[i]) + '-' + str(end_indices[i])]
+                        index_set.add(start_indices[i])
+                        index_set.add(end_indices[i])
+
+                        G.add_edge(start_indices[i], end_indices[i])
+
+    start_indices = [int(x.split('-')[0]) for x in index_list]
+    end_indices = [int(x.split('-')[1]) for x in index_list]
+
+
+    cliques = list(nx.find_cliques(G))
+
+    del_indices = []
+
+    for clique in cliques:
+
+        count = 0
+
+        while count != len(clique) and len(clique) != 0:
+
+            kept = clique.pop(clique.index(choice(clique)))
+            count += 1
+
+            if kept not in del_indices and kept in index_set:
+
+                index_set.remove(kept)
+                del_indices += clique
+                break
+
+    mat = np.delete(mat, list(index_set), 0)
+    mat = np.delete(mat, list(index_set), 1)
+
+    # head = list(np.delete(np.array(head), list(index_set)))
+    [head.pop(x) for x in list(index_set)]
+
+    new_head = {}
+
+    head_count = 0
+
+    for key in sorted(head.keys()):
+        new_head[head_count] = head[key]
+        head_count += 1
+
+    zero_indices = list(np.where(np.array(sol.val) == 0)[0])
+    # swap_indices = [choice(range(0, len(zero_indices))) for x in index_set]
+    swap_indices = sample(range(0, len(zero_indices)), len(index_set))
+    #
+    # while len(swap_indices) != len(index_set):
+    #
+    #     swap = choice(range(0, len(zero_indices)))
+    #
+    #     if swap not in swap_indices:
+    #         swap_indices += swap
+
+    print(zero_indices)
+    for i in swap_indices:
+
+        sol.val[zero_indices[i]] = 1
+
+    sol.val = list(np.delete(np.array(sol.val), list(index_set)))
+
+    return sol, new_head, mat
+
+
+def compute_MDP_tabu(mat, head, k):
+
+    head = initialise_headings(head)
+    mat = initialise_matrix(mat)
+
+    ini_sol = Solution(random_solution(1074, 100))
+    print("Initialising Delta")
+    delta = initialise_delta(mat, ini_sol)
+    results_list = []
+    score_list = []
+    test = MEnzDPTabuSearch(ini_sol, 1074, 'double', 10, 1000, max_wait=70, opt_tuple=[mat, delta])
 
     best, score = test.run()
-
+>>>>>>> 19a2946b65aa6e23f8ecd6c2b30c66eb5dbb9cad
     score_list += [test._score(best)]
 
     for i in range(0, len(best.val)):
@@ -449,12 +545,16 @@ if __name__ == "__main__":
             print(head[i])
 
     print(score)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 19a2946b65aa6e23f8ecd6c2b30c66eb5dbb9cad
     initial_picked_set = []
 
     for i in range(0, len(best.val)):
         if best.val[i] == 1:
             initial_picked_set += [i]
+<<<<<<< HEAD
 
     initial_picked_set = sorted([head[x] for x in initial_picked_set])
     results_list += [initial_picked_set]
@@ -489,3 +589,43 @@ if __name__ == "__main__":
     #     print("ITERATION " + str(i) + ' RESULTS')
     #
     #     print(results_list[i])
+=======
+
+    initial_picked_set = sorted([head[x] for x in initial_picked_set])
+    results_list += [initial_picked_set]
+
+    extra_iterations = 0
+
+    new_head = head
+
+    for i in range(0, extra_iterations):
+
+        best, new_head, mat = post_processing(best, new_head, mat)
+        delta = initialise_delta(mat, best)
+        new_run = MEnzDPTabuSearch(best, 241, 'double', 7, 1000, max_wait=70, opt_tuple=[mat, delta])
+        best, score = new_run.run()
+        new_best_score = new_run._score(best)
+        new_picked_set = []
+
+        for i in range(0, len(best.val)):
+            if best.val[i] == 1:
+                new_picked_set += [i]
+
+        new_picked_set = sorted([new_head[x] for x in new_picked_set])
+        score_list += [new_best_score]
+        results_list += [new_picked_set]
+
+    print("SCORES:")
+    print(score_list)
+
+    for i in range(0, len(results_list)):
+
+        print("ITERATION " + str(i) + ' RESULTS')
+        print(results_list[i])
+
+    print(best.val)
+
+if __name__ == "__main__":
+
+    compute_MDP_tabu('../../Datasets/SSNMatrices/trans1074_identities.npy', '../../Datasets/SSNMatrices/trans1074_headings.json', 100)
+>>>>>>> 19a2946b65aa6e23f8ecd6c2b30c66eb5dbb9cad
