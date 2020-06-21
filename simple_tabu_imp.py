@@ -12,6 +12,7 @@ import numpy as np
 import networkx as nx
 
 
+
 class MEnzDPTabuSearch(TabuSearch):
 
     def _score(self, sol):
@@ -201,8 +202,8 @@ class MEnzDPTabuSearch(TabuSearch):
         neighbourhood.append(move)
 
         # print(neighbourhood[0].path.change)
-        for i in neighbourhood:
-            print(i)
+        # for i in neighbourhood:
+        #     print(i)
         return neighbourhood
 
 
@@ -316,7 +317,7 @@ def sep_indices(val):
 
 def post_processing(sol, head, mat):
 
-    threshold = 0.5
+    threshold = 0.4
 
     index_set = set()
     index_list = []
@@ -399,49 +400,20 @@ def post_processing(sol, head, mat):
 
     return sol, new_head, mat
 
-if __name__ == "__main__":
 
-    print("Running Greedy Max-Min Diversity Solver")
-    # ssn_set, val = max_min_diversity.compute_diverse_set('./bact_p450_identities.npy',
-    #                                         './bact_p450_headings.json', 500)
+def compute_MDP_tabu(mat, head, k):
 
-    ssn_set, val = max_min_diversity.compute_diverse_set('./temp_ssn_identities.npy',
-                                            './temp_ssn_headings.json', 24)
+    head = initialise_headings(head)
+    mat = initialise_matrix(mat)
 
-
-    # head = initialise_headings('./bact_p450_headings.json')
-    # mat = initialise_matrix('./bact_p450_identities.npy')
-    head = initialise_headings('./temp_ssn_headings.json')
-    mat = initialise_matrix('./temp_ssn_identities.npy')
-
-
-    print("\nMDP SET:")
-    for name in ssn_set:
-        print(name + ', ', end='')
-    print(ssn_set)
-
-
-    # ini_sol = Solution(val)
-
-    ini_sol = Solution(random_solution(241, 24))
-    # ini_sol = Solution(random_solution(11457, 500))
-
+    ini_sol = Solution(random_solution(1074, 100))
     print("Initialising Delta")
     delta = initialise_delta(mat, ini_sol)
-
-    # print(ini_sol.val)
-    # test = MEnzDPTabuSearch(ini_sol, 11457, 'double', 100, 1000, max_wait=70, opt_tuple=[mat, delta])
-
     results_list = []
     score_list = []
-    test = MEnzDPTabuSearch(ini_sol, 241, 'double', 10, 1000, max_wait=70, opt_tuple=[mat, delta])
-
-
-    print('BEST SCOREEEEEE')
-    print(test._score(ini_sol))
+    test = MEnzDPTabuSearch(ini_sol, 1074, 'double', 10, 1000, max_wait=70, opt_tuple=[mat, delta])
 
     best, score = test.run()
-
     score_list += [test._score(best)]
 
     for i in range(0, len(best.val)):
@@ -449,7 +421,6 @@ if __name__ == "__main__":
             print(head[i])
 
     print(score)
-
     initial_picked_set = []
 
     for i in range(0, len(best.val)):
@@ -459,33 +430,37 @@ if __name__ == "__main__":
     initial_picked_set = sorted([head[x] for x in initial_picked_set])
     results_list += [initial_picked_set]
 
+    extra_iterations = 0
 
-    # extra_iterations = 5
-    #
-    # new_head = head
-    #
-    # for i in range(0, extra_iterations):
-    #
-    #     best, new_head, mat = post_processing(best, new_head, mat)
-    #     delta = initialise_delta(mat, best)
-    #     new_run = MEnzDPTabuSearch(best, 1074, 'double', 10, 1000, max_wait=70, opt_tuple=[mat, delta])
-    #     best, score = new_run.run()
-    #     new_best_score = new_run._score(best)
-    #     new_picked_set = []
-    #
-    #     for i in range(0, len(best.val)):
-    #         if best.val[i] == 1:
-    #             new_picked_set += [i]
-    #
-    #     new_picked_set = sorted([new_head[x] for x in new_picked_set])
-    #     score_list += [new_best_score]
-    #     results_list += [new_picked_set]
-    #
-    # print("SCORES:")
-    # print(score_list)
-    #
-    # for i in range(0, len(results_list)):
-    #
-    #     print("ITERATION " + str(i) + ' RESULTS')
-    #
-    #     print(results_list[i])
+    new_head = head
+
+    for i in range(0, extra_iterations):
+
+        best, new_head, mat = post_processing(best, new_head, mat)
+        delta = initialise_delta(mat, best)
+        new_run = MEnzDPTabuSearch(best, 241, 'double', 7, 1000, max_wait=70, opt_tuple=[mat, delta])
+        best, score = new_run.run()
+        new_best_score = new_run._score(best)
+        new_picked_set = []
+
+        for i in range(0, len(best.val)):
+            if best.val[i] == 1:
+                new_picked_set += [i]
+
+        new_picked_set = sorted([new_head[x] for x in new_picked_set])
+        score_list += [new_best_score]
+        results_list += [new_picked_set]
+
+    print("SCORES:")
+    print(score_list)
+
+    for i in range(0, len(results_list)):
+
+        print("ITERATION " + str(i) + ' RESULTS')
+        print(results_list[i])
+
+    print(best.val)
+
+if __name__ == "__main__":
+
+    compute_MDP_tabu('../Datasets/SSNMatrices/trans1074_identities.npy', '../Datasets/SSNMatrices/trans1074_headings.json', 100)
