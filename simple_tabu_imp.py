@@ -463,4 +463,4 @@ def compute_MDP_tabu(mat, head, k):
 
 if __name__ == "__main__":
 
-    compute_MDP_tabu('../Datasets/SSNMatrices/trans1074_identities.npy', '../Datasets/SSNMatrices/trans1074_headings.json', 100)
+    compute_MDP_tabu('../../Datasets/SSNMatrices/trans1074_identities.npy', '../../Datasets/SSNMatrices/trans1074_headings.json', 100)
