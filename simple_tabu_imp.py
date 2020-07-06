@@ -1,10 +1,9 @@
 from __future__ import print_function
-from tabstuSearch.TabuSearch import TabuSearch as TabuSearch
-from tabstuSearch.Solution import Solution as Solution
-from tabstuSearch.Path import Path as Path
-from tabstuSearch.Move import Move as Move
-from data_prep import initialise_headings, initialise_matrix
-from maxminDiversitySet import max_min_diversity
+from .tabstuSearch.TabuSearch import TabuSearch as TabuSearch
+from .tabstuSearch.Solution import Solution as Solution
+from .tabstuSearch.Path import Path as Path
+from .tabstuSearch.Move import Move as Move
+from .data_prep import initialise_headings, initialise_matrix
 
 from copy import deepcopy
 from random import choice, sample
