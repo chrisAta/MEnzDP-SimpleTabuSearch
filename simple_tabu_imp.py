@@ -400,12 +400,12 @@ def post_processing(sol, head, mat):
     return sol, new_head, mat
 
 
-def compute_MDP_tabu(mat, head, k):
+def compute_MDP_tabu(mat, head, k, n):
 
     head = initialise_headings(head)
     mat = initialise_matrix(mat)
 
-    ini_sol = Solution(random_solution(1074, 100))
+    ini_sol = Solution(random_solution(1074, k))
     print("Initialising Delta")
     delta = initialise_delta(mat, ini_sol)
     results_list = []
@@ -429,7 +429,7 @@ def compute_MDP_tabu(mat, head, k):
     initial_picked_set = sorted([head[x] for x in initial_picked_set])
     results_list += [initial_picked_set]
 
-    extra_iterations = 0
+    extra_iterations = n
 
     new_head = head
 
@@ -459,6 +459,8 @@ def compute_MDP_tabu(mat, head, k):
         print(results_list[i])
 
     print(best.val)
+
+    return results_list
 
 if __name__ == "__main__":
 
