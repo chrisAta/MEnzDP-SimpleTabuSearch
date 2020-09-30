@@ -4,10 +4,15 @@ import json
 
 def initialise_matrix(dist_file):
 
+
     dist = np.load(dist_file)
 
     for i in range(0, len(dist)):
         dist[i][i] = np.nan
+        for j in range(i+1, len(dist)):
+            if dist[i][j] == 1:
+                dist[i][j] = 0.99
+                dist[j][i] = 0.99
 
     return np.asmatrix(dist)
 
